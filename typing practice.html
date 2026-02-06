@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Typing Test</title>
+    <style>
+        
+        * body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content:center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        } 
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+        }
+
+        #quote-display {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 1.3em;
+            line-height: 1.6;
+            color: #495057;
+            text-align: left;
+            
+        }
+
+         #quote-input {
+            width: calc(100% - 40px); 
+            padding: 15px 20px;
+            font-size: 1.2em;
+            border: 2px solid #ff004c;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s ease;
+        } 
+
+         #quote-input:focus {
+            border-color: #8fb300;
+        }
+
+        .correct {
+            color: green;
+        } 
+
+         .incorrect {
+            color: rgb(0, 119, 255);
+            background-color: #ffe0e0;
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+
+        .results {
+            margin-top: 25px;
+            font-size: 1.2em;
+            color: #555;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap; 
+        }
+
+        .result-item {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            min-width: 150px;
+        }
+
+        .result-item strong {
+            display: block;
+            font-size: 1.5em;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        } 
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Typing Speed Test</h1>
+        <div id="quote-display"></div>
+        <textarea id="quote-input" placeholder="Start typing here..." rows="10"></textarea>
+        <button id="restart-button">Restart Test</button>
+
+        <div class="results">
+            <div class="result-item">
+                <p>Speed</p>
+                <strong id="wpm">30</strong> WPM
+            </div>
+            <div class="result-item">
+                <p>Errors</p>
+                <strong id="errors">0</strong>
+            </div>
+            <div class="result-item">
+                <p>Time</p>
+                <strong id="timer">1800</strong> s
+            </div>
+        </div>
+    </div> 
+
+    <script> 
+        
+        const quotes = [
+            "The quick brown fox jumps over the lazy dog.",
+            "Never underestimate the power of a good book.",
+            "Practice makes perfect, especially with typing.",
+            "The early bird catches the worm.",
+            "Technology has revolutionized the way we live and work."];
+
+        const quoteDisplay = document.getElementById('quote-display');
+        const quoteInput = document.getElementById('quote-input');
+        const wpmDisplay = document.getElementById('wpm');
+        const errorsDisplay = document.getElementById('errors');
+        const timerDisplay = document.getElementById('timer');
+        const restartButton = document.getElementById('restart-button');
+
+        let currentQuote = '';
+        let startTime;
+        let timerInterval;
+        let charIndex = 0;
+        let errors = 0;
+        let isTypingStarted = false;
+
+        function getRandomQuote() {
+            return quotes[Math.floor(Math.random() * quotes.length)];
+        }
+
+        function loadNewQuote() {
+            currentQuote = getRandomQuote();
+            quoteDisplay.innerHTML = ''; // Clear previous quote
+            currentQuote.split('').forEach(char => {
+                const charSpan = document.createElement('span');
+                charSpan.innerText = char;
+                quoteDisplay.appendChild(charSpan);
+            });
+
+            quoteInput.value = '';
+            charIndex = 0;
+            errors = 0;
+            isTypingStarted = false;
+            clearInterval(timerInterval);
+            timerDisplay.innerText = '0';
+            wpmDisplay.innerText = '0';
+            errorsDisplay.innerText = '0';
+            quoteInput.focus();
+            quoteDisplay.querySelectorAll('span').forEach(span => span.classList.remove('correct', 'incorrect'));
+        }
+
+        function startTimer() {
+            startTime = new Date().getTime();
+            timerInterval = setInterval(() => {
+                const currentTime = new Date().getTime();
+                const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+                timerDisplay.innerText = elapsedTime;
+            }, 1000);
+        }
+
+        quoteInput.addEventListener('input', () => {
+            if (!isTypingStarted) {
+                startTimer();
+                isTypingStarted = true;
+            }
+
+            const typedText = quoteInput.value;
+            const quoteSpans = quoteDisplay.querySelectorAll('span');
+            errors = 0;
+
+            for (let i = 0; i < currentQuote.length; i++) {
+                const charSpan = quoteSpans[i];
+                const charTyped = typedText[i];
+
+                if (charTyped == null) {
+                    // Character not yet typed
+                    charSpan.classList.remove('correct', 'incorrect');
+                } else if (charTyped === charSpan.innerText) {
+                    // Correct character
+                    charSpan.classList.remove('incorrect');
+                    charSpan.classList.add('correct');
+                } else {
+                    // Incorrect character
+                    charSpan.classList.remove('correct');
+                    charSpan.classList.add('incorrect');
+                    errors++;
+                }
+            }
+
+            errorsDisplay.innerText = errors;
+
+            // Check if all characters are typed
+            if (typedText.length === currentQuote.length) {
+                clearInterval(timerInterval); // Stop the timer
+                const endTime = new Date().getTime();
+                const totalTimeInSeconds = (endTime - startTime) / 1000;
+                
+                // Calculate WPM
+                const wordsTyped = (typedText.length / 5); // Average word length is 5 characters
+                const wpm = Math.round((wordsTyped / totalTimeInSeconds) * 60);
+                wpmDisplay.innerText = isFinite(wpm) ? wpm : 0; // Handle division by zero
+
+                // Disable input after completion
+                // quoteInput.disabled = true; // Optional: disable input after completion
+            }
+        });
+
+        restartButton.addEventListener('click', loadNewQuote);
+
+        
+        loadNewQuote();
+    </script>
+</body>
+</html> 
